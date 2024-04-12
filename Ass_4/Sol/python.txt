@@ -1,0 +1,122 @@
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+
+# Step 1: Load the data
+data = pd.read_excel('D:\\Semester7\\softComputing\\Assignments\\Ass_4\\concrete_data.xlsx')
+
+normalized_data = (data - data.mean(axis=0)) / data.std(axis=0)
+
+
+numbrer_train = int(0.75 * len(data))
+
+numbrer_test = len(data) - numbrer_train
+
+train_data = data.iloc[:numbrer_train, :]
+
+test_data= data.iloc[numbrer_train:, :]
+
+X_train = train_data.drop("concrete_compressive_strength", axis=1)
+
+Y_train = train_data["concrete_compressive_strength"]
+
+X_test = test_data.drop("concrete_compressive_strength", axis=1)
+
+Y_test = test_data["concrete_compressive_strength"]
+
+Scaler = StandardScaler()
+
+Scaler.fit(X_train)
+
+X_train = Scaler.transform(X_train)
+
+X_test = Scaler.transform(X_test)
+
+#
+# features = normalized_data.drop(['concrete_compressive_strength'], axis=1)
+# targets = normalized_data['concrete_compressive_strength']
+
+
+
+
+
+class NeuralNetwork:
+
+    def __init__(self, input_size, hidden_Length = 4, learning_rate=0.3):
+
+        self.learningRate = learning_rate
+
+        self.hidden_weight = np.random.rand(hidden_Length, input_size + 1)
+
+        self.output_weight = np.random.rand(hidden_Length, 1)
+
+        self.Bh = np.zeros((hidden_Length, 1))
+
+    def Sigmoid(self, input):
+
+        return 1 / (1 + np.exp(-input))
+
+    def RelU(self, input):
+
+        return np.maximum(0, input)
+
+    def forwardPropagation(self):
+
+        self.input = np.insert(self.input, 0, 1)
+        self.hidden= self.Sigmoid(np.matmul(self.hidden_weight, self.input.reshape(-1, 1)) + self.Bh)
+        self.Y = np.matmul(self.H.T, self.output_weight)
+
+    def backPropagation(self, y):
+
+        oError = self.Y - y
+
+        self.output_weight -= self.learningRate * oError * self.H
+
+        hError = oError * self.output_weight * (self.hidden * (1 - self.H))
+
+        self.hidden_weight -= self.learningRate * np.matmul(hError, self.input.reshape(1, -1))
+
+        self.Bh -= self.learningRate * hError
+
+    def fit(self, X_train, Y_train, epochs=10):
+
+        for _ in range(epochs):
+
+            for i in range(len(X_train)):
+
+                self.input = X_train[i]
+
+                self.forwardPropagation()
+
+                self.backPropagation(Y_train.iloc[i])
+
+    def predict(self, input):
+
+        yPredictions = []
+
+        for i in range(len(input)):
+
+            self.input = input[i]
+
+            self.forwardPropagation()
+
+            yPredictions.append(self.Y)
+
+        return yPredictions
+
+    def calc_error(self, y):
+
+        return np.mean((self.Y - y) ** 2)
+
+
+inputSize = len(X_train.columns)
+
+model = NeuralNetwork(inputSize)
+
+model.fit(X_train, Y_train, epochs=1000)
+
+yPrediction = model.predict(X_test)
+
+meanSquaredError = model.calc_error(Y_test.values)
+
+print(f"Mean Squared Error Of Neural Network Model: {meanSquaredError}")
